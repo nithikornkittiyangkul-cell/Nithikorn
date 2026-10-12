@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solow Model Web Simulator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #f4f6fb; --card: #ffffff; --ink: #1b2a41; --muted: #5b6b82;
+    --accent: #2f5bea; --y: #2f5bea; --i: #1a9e6b; --d: #e0573a; --line: #dfe5f0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Noto Sans Thai", "Sarabun", "Tahoma", system-ui, sans-serif; line-height: 1.6;
+  }
+  header {
+    background: linear-gradient(135deg, #1b2a41, #2f5bea); color: #fff; padding: 28px 20px;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+  header h1 { margin: 0 0 6px; font-size: 1.7rem; }
+  header .sub { opacity: .9; }
+  header .who { margin-top: 12px; font-weight: 600; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 20px; margin: 18px 0; box-shadow: 0 2px 8px rgba(27,42,65,.05);
+  }
+  h2 { margin: 0 0 10px; font-size: 1.2rem; }
+  .eq { font-family: "Cambria Math", "Times New Roman", serif; font-size: 1.05rem;
+        background: #eef2fb; padding: 10px 14px; border-radius: 8px; display: inline-block; margin: 4px 0; }
+  ul { margin: 8px 0 0 0; padding-left: 20px; }
+  .sliders { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; }
+  .slider label { display: flex; justify-content: space-between; font-weight: 600; }
+  .slider input[type=range] { width: 100%; accent-color: var(--accent); }
+  .chart-box { position: relative; height: 420px; }
+  .results { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+  .res { border: 1px solid var(--line); border-radius: 12px; padding: 14px; text-align: center; background: #fafbff; }
+  .res .name { color: var(--muted); font-size: .9rem; }
+  .res .val { font-size: 1.7rem; font-weight: 700; color: var(--accent); }
+  .res small { color: var(--muted); }
+  button {
+    font-family: inherit; font-size: 1rem; border: 0; border-radius: 10px; padding: 12px 18px;
+    cursor: pointer; background: var(--accent); color: #fff; font-weight: 600;
+  }
+  button.secondary { background: #e8ecf6; color: var(--ink); margin-left: 8px; }
+  button:hover { filter: brightness(1.08); }
+  #scenarioMsg {
+    margin-top: 14px; padding: 12px 14px; border-left: 4px solid var(--i); background: #eefaf4;
+    border-radius: 6px; display: none;
+  }
+  footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 20px 0 40px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>Solow Model Web Simulator</h1>
+    <div class="sub">แบบจำลองการเติบโตของ Solow อย่างง่าย สำหรับวิชาเศรษฐกิจดิจิทัล</div>
+    <div class="who">นิธิกร กิตติยังกุล &nbsp;|&nbsp; รหัสนักศึกษา 661810264</div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="card">
+    <h2>คำอธิบายแบบจำลอง</h2>
+    <p>
+      <span class="eq">Y = A√K</span>
+      คือฟังก์ชันการผลิต: ผลผลิต (Y) ขึ้นอยู่กับทุน (K) และระดับเทคโนโลยี (A)
+      โดยทุนเพิ่มขึ้นแล้วผลผลิตเพิ่มตาม แต่เพิ่มในอัตราที่ลดลง (ผลตอบแทนต่อทุนลดน้อยถอยลง)
+    </p>
+    <p>
+      <b>K</b> คือ ทุนต่อแรงงานที่มีประสิทธิภาพ (capital per effective worker, eL)
+    </p>
+    <p>
+      <span class="eq">I = sY</span> &nbsp;
+      <span class="eq">D = δK</span> &nbsp;
+      <span class="eq">ΔK = sY − δK</span>
+    </p>
+    <ul>
+      <li><b>s (อัตราการออม):</b> เพิ่ม s ทำให้การลงทุน I = sY สูงขึ้น ทุน K จึง<b>เพิ่ม</b>เร็วขึ้นและ steady state สูงขึ้น</li>
+      <li><b>δ (อัตราค่าเสื่อม):</b> เพิ่ม δ ทำให้ค่าเสื่อม D = δK สูงขึ้น ทุน K จึง<b>ลด</b>ลงและ steady state ต่ำลง</li>
+      <li><b>A (ระดับเทคโนโลยี):</b> เพิ่ม A ทำให้ผลผลิต Y ที่ได้จากทุนเท่าเดิมสูงขึ้น การลงทุน sY จึงสูงขึ้น ทุน K <b>เพิ่ม</b>ขึ้น</li>
+      <li><b>Steady state:</b> คือจุดที่ sY = δK ทุนไม่เปลี่ยน (ΔK = 0)</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>ปรับตัวแปร</h2>
+    <div class="sliders">
+      <div class="slider">
+        <label for="s"><span>s (อัตราการออม)</span><span id="sVal">0.280</span></label>
+        <input type="range" id="s" min="0.01" max="0.99" step="0.01" value="0.28">
+      </div>
+      <div class="slider">
+        <label for="d"><span>δ (อัตราค่าเสื่อม)</span><span id="dVal">0.032</span></label>
+        <input type="range" id="d" min="0.005" max="0.20" step="0.001" value="0.032">
+      </div>
+      <div class="slider">
+        <label for="A"><span>A (ระดับเทคโนโลยี)</span><span id="AVal">2.600</span></label>
+        <input type="range" id="A" min="0.5" max="10" step="0.01" value="2.6">
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>กราฟ: Y, I = sY และ D = δK ตามระดับทุน K</h2>
+    <div class="chart-box"><canvas id="chart"></canvas></div>
+    <div id="chartErr" style="display:none;color:#b3261e;margin-top:8px">
+      โหลด Chart.js ไม่สำเร็จ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วรีเฟรชหน้า
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>ค่าที่ steady state</h2>
+    <div class="results">
+      <div class="res"><div class="name">K* (ทุน)</div><div class="val" id="Kstar">-</div><small>K* = (sA/δ)²</small></div>
+      <div class="res"><div class="name">Y* (ผลผลิต)</div><div class="val" id="Ystar">-</div><small>Y* = A√K*</small></div>
+      <div class="res"><div class="name">C* (การบริโภค)</div><div class="val" id="Cstar">-</div><small>C* = (1−s)Y*</small></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>จำลองสถานการณ์</h2>
+    <button id="aiBtn">สถานการณ์เศรษฐกิจดิจิทัล: ประเทศไทยนำ AI มาใช้</button>
+    <button id="resetBtn" class="secondary">รีเซ็ตค่าเริ่มต้น</button>
+    <div id="scenarioMsg"></div>
+  </section>
+
+</main>
+
+<footer>ใช้เฉพาะสมการ Y = A√K, I = sY, D = δK</footer>
+
+<script>
+  const DEFAULTS = { s: 0.28, d: 0.032, A: 2.6 };
+  const el = id => document.getElementById(id);
+  const sIn = el('s'), dIn = el('d'), AIn = el('A');
+
+  // ---- สมการของแบบจำลอง (เฉพาะ Y = A√K, I = sY, D = δK) ----
+  const Y = (A, K) => A * Math.sqrt(K);
+  const Kstar = (s, d, A) => Math.pow((s * A) / d, 2);
+  const Ystar = (s, d, A) => Y(A, Kstar(s, d, A));
+  const Cstar = (s, d, A) => (1 - s) * Ystar(s, d, A);
+
+  const vals = () => ({ s: parseFloat(sIn.value), d: parseFloat(dIn.value), A: parseFloat(AIn.value) });
+  const f3 = x => x.toFixed(3);
+
+  let chart = null;
+
+  function buildChart() {
+    if (typeof Chart === 'undefined') { el('chartErr').style.display = 'block'; return; }
+    chart = new Chart(el('chart'), {
+      type: 'scatter',
+      data: { datasets: [
+        { label: 'Y = A√K', data: [], showLine: true, borderColor: '#2f5bea', backgroundColor: '#2f5bea', pointRadius: 0, borderWidth: 3 },
+        { label: 'I = sY', data: [], showLine: true, borderColor: '#1a9e6b', backgroundColor: '#1a9e6b', pointRadius: 0, borderWidth: 3 },
+        { label: 'D = δK', data: [], showLine: true, borderColor: '#e0573a', backgroundColor: '#e0573a', pointRadius: 0, borderWidth: 3 },
+        { label: 'Steady state', data: [], showLine: false, borderColor: '#111', backgroundColor: '#ffd23f', pointRadius: 9, pointBorderWidth: 2, pointHoverRadius: 11 },
+        { label: 'เส้น K*', data: [], showLine: true, borderColor: '#777', borderDash: [6, 5], borderWidth: 1.5, pointRadius: 0 }
+      ]},
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: { duration: 150 },
+        parsing: false,
+        scales: {
+          x: { type: 'linear', min: 0, title: { display: true, text: 'ทุน K' } },
+          y: { type: 'linear', min: 0, title: { display: true, text: 'Y, I, D' } }
+        },
+        plugins: {
+          tooltip: { callbacks: { label: c => `${c.dataset.label}: (K=${f3(c.parsed.x)}, ${f3(c.parsed.y)})` } },
+          legend: { labels: { usePointStyle: true } }
+        }
+      }
+    });
+  }
+
+  function update() {
+    const { s, d, A } = vals();
+    el('sVal').textContent = f3(s);
+    el('dVal').textContent = f3(d);
+    el('AVal').textContent = f3(A);
+
+    const K = Kstar(s, d, A), Yv = Ystar(s, d, A), C = Cstar(s, d, A);
+    el('Kstar').textContent = f3(K);
+    el('Ystar').textContent = f3(Yv);
+    el('Cstar').textContent = f3(C);
+
+    if (!chart) return;
+    const maxK = K * 1.6, n = 120;
+    const yl = [], il = [], dl = [];
+    for (let i = 0; i <= n; i++) {
+      const k = maxK * i / n, y = Y(A, k);
+      yl.push({ x: k, y }); il.push({ x: k, y: s * y }); dl.push({ x: k, y: d * k });
+    }
+    chart.data.datasets[0].data = yl;
+    chart.data.datasets[1].data = il;
+    chart.data.datasets[2].data = dl;
+    chart.data.datasets[3].data = [{ x: K, y: s * Yv }];
+    chart.data.datasets[4].data = [{ x: K, y: 0 }, { x: K, y: s * Yv }];
+    chart.options.scales.x.max = maxK;
+    chart.options.scales.y.max = Y(A, maxK) * 1.05;
+    chart.update();
+  }
+
+  [sIn, dIn, AIn].forEach(i => i.addEventListener('input', () => { el('scenarioMsg').style.display = 'none'; update(); }));
+
+  el('aiBtn').addEventListener('click', () => {
+    const { s, d, A } = vals();
+    const newA = Math.min(A * 1.2, parseFloat(AIn.max));
+    const y0 = Ystar(s, d, A), y1 = Ystar(s, d, newA);
+    const k0 = Kstar(s, d, A), k1 = Kstar(s, d, newA);
+    AIn.value = newA;
+    update();
+    const diff = y1 - y0, pct = y0 > 0 ? diff / y0 * 100 : 0;
+    const kdiff = k1 - k0, kpct = k0 > 0 ? kdiff / k0 * 100 : 0;
+    const msg = el('scenarioMsg');
+    msg.style.display = 'block';
+    msg.innerHTML =
+      `ประเทศไทยนำ AI มาใช้ ทำให้ A เพิ่มขึ้น 20% (จาก ${f3(A)} เป็น ${f3(newA)})<br>` +
+      `Y* เปลี่ยนจาก <b>${f3(y0)}</b> เป็น <b>${f3(y1)}</b> ` +
+      `คือ ${diff >= 0 ? 'เพิ่มขึ้น' : 'ลดลง'} <b>${f3(Math.abs(diff))}</b> หน่วย (${diff >= 0 ? '+' : '−'}${Math.abs(pct).toFixed(3)}%)<br>` +
+      `K* เปลี่ยนจาก <b>${f3(k0)}</b> เป็น <b>${f3(k1)}</b> ` +
+      `คือ ${kdiff >= 0 ? 'เพิ่มขึ้น' : 'ลดลง'} <b>${f3(Math.abs(kdiff))}</b> หน่วย (${kdiff >= 0 ? '+' : '−'}${Math.abs(kpct).toFixed(3)}%)<br>` +
+      `<b>สรุป:</b> เมื่อ A สูงขึ้น ผลผลิต Y = A√K ที่ทุนระดับเดิมสูงขึ้น ทำให้การลงทุน sY อยู่เหนือค่าเสื่อม δK ` +
+      `ทุนจึงสะสมเพิ่มจนถึงสถานะคงที่ใหม่ที่ K* สูงขึ้น และ Y* สูงขึ้นตามไปด้วย ` +
+      `(เส้น sY ในกราฟเลื่อนขึ้น จุด steady state เลื่อนไปทางขวาและขึ้นบน)`;
+  });
+
+  el('resetBtn').addEventListener('click', () => {
+    sIn.value = DEFAULTS.s; dIn.value = DEFAULTS.d; AIn.value = DEFAULTS.A;
+    el('scenarioMsg').style.display = 'none';
+    update();
+  });
+
+  buildChart();
+  update();
+</script>
+</body>
+</html>
